@@ -1,5 +1,5 @@
-ezgif-4-758975f959.gif
-ezgif-4-758975f959.gif (1023.05 KiB) Viewed 102 times
+
+![ezgif-4-758975f959](https://github.com/samfisherirl/GuiResizer-plus-CreateImageButton.ahk-for-v2/assets/98753696/b30eccaa-faa9-42a7-ae3a-ef345383c1b8)
 
 Im finally trying out this whole gdpi thing @jNizM, using your bootstrap buttons.
 I also use @FanaticGuru's GuiResizer and decided - might as well combine the two.
