@@ -1,4 +1,7 @@
 
+Credits for CreateImageButton: https://www.autohotkey.com/boards/viewtopic.php?f=83&t=93339
+Credits for GuiResizer: https://www.autohotkey.com/boards/viewtopic.php?f=83&t=113921
+
 ![ezgif-4-758975f959](https://github.com/samfisherirl/GuiResizer-plus-CreateImageButton.ahk-for-v2/assets/98753696/b30eccaa-faa9-42a7-ae3a-ef345383c1b8)
 
 Im finally trying out this whole gdpi thing @jNizM, using your bootstrap buttons.
