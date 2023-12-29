@@ -331,15 +331,17 @@ Class GuiReSizer
      * 
      * @example
      * // Usage:
-     * GuiReSizer.FormatOpt(myControl, 10, 20, 30, 40);
+     * GuiReSizer.FormatOpt(myControl, 10, 20, 30, 40, anchor?);
      * 
      * // This will set the X position to 10% of the Gui width,
      * // Y position to 20% of the Gui height,
      * // Width to 30% of the Gui width,
      * // Height to 40% of the Gui height.
      */
-    static FormatOpt(ctrl, xp?, yp?, wp?, hp?) 
+    static FormatOpt(ctrl, xp?, yp?, wp?, hp?, anchor?) 
     {
+        if IsSet(anchor)
+            ctrl.A := anchor
         options := ""
         if IsSet(xp)
             options .= GuiResizer.doTheMath(xp, "xp")
@@ -351,6 +353,11 @@ Class GuiReSizer
             options .= GuiResizer.doTheMath(hp, "hp")
         options := StrReplace(options, "0.", ".")
         GuiResizer.Opt(ctrl, options)
+    }
+    
+    static Duplicate(ctrl, ctrlToCopy)
+    {
+        GuiResizer.FormatOpt(ctrl, ctrlToCopy.XP, ctrlToCopy.YP, ctrlToCopy.WidthP, ctrlToCopy.HeightP)
     }
     static doTheMath(val, str) {
         if val < 0
