@@ -11,6 +11,7 @@ class Convert2Resizer
     
     static Call(guiObj, path?) {
         Sleep(10)
+        guiObj.Show()
         guiObj.GetPos(&x, &y, &w, &h)
         Convert2Resizer.GuiW := w
         Convert2Resizer.GuiH := h
@@ -61,7 +62,7 @@ class Convert2Resizer
         guiname := "myGui"
         newScript := "#Requires Autohotkey v2`n#SingleInstance force`n"
             . "#Include <GuiReSizer>`n`n" storage " := {}`n"
-            . guiname " := Gui(), " guiname ".Opt(`" + Resize + MinSize250x150 `")`n" guiname ".OnEvent(`"Size`", GuiReSizer)`n"
+            . guiname " := Gui(), " guiname ".Opt(`"+Resize +MinSize250x150`")`n" guiname ".OnEvent(`"Size`", GuiReSizer)`n"
         defaults := Map()
         defaults := ctrlDefault()
         for _map in replacementCtrls
@@ -118,4 +119,84 @@ ctrlDefault()
         "Radio", map("ctrl", "Radio", "event", "Click", "function", "Value"),
         "CheckBox", map("ctrl", "CheckBox", "event", "Click", "function", "Value"),
         "ComboBox", map("ctrl", "ComboBox", "event", "Change", "function", "Text"))
+}
+
+SplitPath(A_ScriptFullPath, &fn)
+if fn = "convert2Resizer.ahk"
+    myGui := Constructor_()
+
+Constructor_() {
+    myGui := Gui()
+    ButtonSelectGUIScript := myGui.Add("Button", "x24 y64 w174 h39", "Select GUI Script")
+    Edit1 := myGui.Add("Edit", "x24 y8 w432 h38")
+    ButtonConvert := myGui.Add("Button", "x208 y64 w154 h37", "Convert")
+    ButtonSelectGUIScript.OnEvent("Click", FS)
+    ButtonConvert.OnEvent("Click", Convert)
+    myGui.OnEvent('Close', (*) => ExitApp())
+    myGui.Title := "Window"
+    myGui.Show("w501 h122")
+    
+    FS(*)
+    {
+        global F
+        F := FileSelect(, "C:\", "Select script for conversion")
+        if F != ""
+            if !FileExist(F)
+                F := false
+            else 
+                Edit1.Value := F
+            
+    }
+    Convert(*)
+    {
+        global F
+        if !F
+        {
+            Msgbox "File not Found"
+            return
+        }
+        contents := FileOpen(F, "r").Read()
+        Lib := FileOpen(A_ScriptFullPath, "r").Read()
+        script := ""
+        Loop parse, contents, "`n" "`r" 
+        {
+            if InStr(A_LoopField, "Gui(")
+            {
+                if InStr(A_LoopField, ":=")
+                    guiName := Trim(StrSplit(A_LoopField, ":=")[1]) 
+            }
+            else if InStr(A_LoopField, "Show(")
+            {
+                tmp := StrSplit(A_LoopField, "Show(")[2]
+                tmp := StrSplit(tmp, ")")[1]
+                regexWidth := "w(\d+)"
+                regexHeight := "h(\d+)"
+
+                width := ""
+                height := ""
+                ; Perform the regex search for width
+                if RegExMatch(tmp, regexWidth, &widthMatch) && width = "" {
+                    width := widthMatch[0] ; The number after 'w'
+                }
+                ; Perform the regex search for height
+                if RegExMatch(tmp, regexHeight, &heightMatch) && height = "" {
+                    height := heightMatch[0] ; The number after 'h'
+                }
+            }
+            if !InStr(A_LoopField, "Show(") && !InStr(A_LoopField, "#Include")
+                script .= A_LoopField "`n"
+        }
+        tempFileContents := Lib "`n" script "`n" guiName . ".Show(`"" 
+        tempFileContents .= (width != "") ? width : (height != "") ? height : ""
+        tempFileContents .= "`")"
+        FileOpen(A_MyDocuments "\tempFile.ahk", "w").Write(tempFileContents)
+        Run(A_AhkPath " `"" A_MyDocuments "\tempFile.ahk" "`"") 
+        Sleep(100)
+        try{
+            FileDelete(A_MyDocuments "\tempFile.ahk")
+        }
+        ExitApp()
+    }
+
+    return myGui
 }
