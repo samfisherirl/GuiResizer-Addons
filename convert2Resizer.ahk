@@ -1,6 +1,6 @@
 #Requires AutoHotkey v2.0
 #SingleInstance Force 
- 
+#Warn all, off
 
 class Convert2Resizer
 {
@@ -10,7 +10,6 @@ class Convert2Resizer
     static GuiY := 0
     
     static Call(guiObj, path?) {
-        Sleep(10)
         guiObj.Show()
         guiObj.GetPos(&x, &y, &w, &h)
         Convert2Resizer.GuiW := w
@@ -73,9 +72,12 @@ class Convert2Resizer
             {
                 if InStr(splitLines[line], "Add(") && InStr(splitLines[line], ":=")
                     _map['Name'] := Trim(StrSplit(splitLines[line], " := ")[1]) 
-            } else {
+            }
+            else {
                 _map['Name'] := Trim(_map["Type"]) A_Index
             }
+            if !_map.Has('Name')
+                _map['Name'] := 'ctrl' A_Index
             newScript .= storage "." _map['Name'] " := " guiname ".Add(`"" _map['Type'] "`", `"`"," 
             newScript .= (!InStr(_map['Type'], "List")) ? !InStr(_map['Type'], "ComboBox") ?  " `"`")`n" : "[`"`"])`n" : "[`"`"])`n"
                 
@@ -118,11 +120,13 @@ ctrlDefault()
         "MonthCal", map("ctrl", "MonthCal", "event", "Change", "function", "Value"),
         "Radio", map("ctrl", "Radio", "event", "Click", "function", "Value"),
         "CheckBox", map("ctrl", "CheckBox", "event", "Click", "function", "Value"),
-        "ComboBox", map("ctrl", "ComboBox", "event", "Change", "function", "Text"))
+        "GroundBox", map("ctrl", "CheckBox", "event", "Click", "function", "Text"),
+        "ComboBox", map("ctrl", "ComboBox", "event", "Change", "function", "Text"),
+        "ListBox", Map("ctrl", "ListBox", "event", "Click", "Function", "Value"))
 }
 
 SplitPath(A_ScriptFullPath, &fn)
-if fn = "convert2Resizer.ahk"
+if InStr(fn, "ert2Re")
     myGui := Constructor_()
 
 Constructor_() {
@@ -158,16 +162,27 @@ Constructor_() {
         contents := FileOpen(F, "r").Read()
         Lib := FileOpen(A_ScriptFullPath, "r").Read()
         script := ""
+        start := false
         Loop parse, contents, "`n" "`r" 
         {
-            if InStr(A_LoopField, "Gui(")
+            if !start
+                if InStr(A_LoopField, "Gui(")
+                {
+                    start := true
+                    if InStr(A_LoopField, ":=")
+                        guiName := Trim(StrSplit(A_LoopField, ":=")[1]) 
+                } else 
+                    continue
+            if InStr(A_LoopField, ".Add") && InStr(A_LoopField, guiName)
             {
-                if InStr(A_LoopField, ":=")
-                    guiName := Trim(StrSplit(A_LoopField, ":=")[1]) 
+                script .= Trim(A_LoopField) "`n"
+                ; e_ := ctrlDefault().__Enum(2)
+                ; while e_(&k)
+                ;     if InStr(A_LoopField, k)  
             }
             else if InStr(A_LoopField, "Show(")
             {
-                tmp := StrSplit(A_LoopField, "Show(")[2]
+                tmp := StrSplit(Trim(A_LoopField), "Show(")[2]
                 tmp := StrSplit(tmp, ")")[1]
                 regexWidth := "w(\d+)"
                 regexHeight := "h(\d+)"
@@ -182,16 +197,26 @@ Constructor_() {
                 if RegExMatch(tmp, regexHeight, &heightMatch) && height = "" {
                     height := heightMatch[0] ; The number after 'h'
                 }
+                break
             }
-            if !InStr(A_LoopField, "Show(") && !InStr(A_LoopField, "#Include")
-                script .= A_LoopField "`n"
         }
-        tempFileContents := Lib "`n" script "`n" guiName . ".Show(`"" 
+        if !IsSet(guiName)
+            return
+        SplitPath(F, , &D)
+        tempFileContents := Lib "`n" guiName " := Gui()`n" script "`n" guiName . ".Show(`"" 
         tempFileContents .= (width != "") ? width : (height != "") ? height : ""
-        tempFileContents .= "`")"
-        FileOpen(A_MyDocuments "\tempFile.ahk", "w").Write(tempFileContents)
-        Run(A_AhkPath " `"" A_MyDocuments "\tempFile.ahk" "`"") 
+        tempFileContents .= "`")" "`nConvert2Resizer(" guiName ", `"" F "`")`n"
+        FileOpen(D "\tempFile.ahk", "w").Write(tempFileContents)
+        RunWait(A_AhkPath " `"" D "\tempFile.ahk" "`"", , ,&PID)
         Sleep(100)
+        x := 0
+        While ProcessExist(PID)
+        {
+            x+=1
+            Sleep 100
+            if x > 500
+                break
+        }
         try{
             FileDelete(A_MyDocuments "\tempFile.ahk")
         }
