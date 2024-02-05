@@ -3,7 +3,7 @@
 #Warn all, off
 #Include <GuiResizer>
 
-class Convert2Resizer extends GuiResizer
+class AutoResizer extends GuiResizer
 {
     static GuiW := 0
     static GuiH := 0
@@ -17,38 +17,39 @@ class Convert2Resizer extends GuiResizer
      
     static Call(guiObj, path?)
     {
-        guiObj.Opt("-DPIScale")
+        if AutoResizer.hwnd != false || AutoResizer.hwnd != 0
+            return
+        guiObj.Opt("-DPIScale +Resize +MinSize250x150")
+        
         guiObj.OnEvent("Size", GuiResizer)
-        Convert2Resizer.hwnd := guiObj.hwnd, Convert2Resizer.path := IsSet(path) ? path : ""
-        Convert2Resizer.timer := {Call: Convert2Resizer.wait4GuiShow}
-        ;Convert2Resizer.f := ObjBindMethod(Convert2Resizer.wait4GuiShow, "Call")
-        ;Convert2Resizer.F.timer.Call := ObjBindMethod(Convert2Resizer.wait4GuiShow, "Call")
+        AutoResizer.hwnd := guiObj.hwnd, AutoResizer.path := IsSet(path) ? path : ""
+        AutoResizer.timer := {Call: AutoResizer.wait4GuiShow}
         if !WinExist("ahk_id " guiObj.hwnd)
-            SetTimer(Convert2Resizer.timer, 100)
+            SetTimer(AutoResizer.timer, 100)
         else
-            IsSet(path) ? Convert2Resizer.getPos(guiObj, path) : Convert2Resizer.getPos(guiObj)
+            IsSet(path) ? AutoResizer.setPos(guiObj, path) : AutoResizer.setPos(guiObj)
     }
     static wait4GuiShow(*)
     {
-        while !WinExist("ahk_id " Convert2Resizer.hwnd)
+        while !WinExist("ahk_id " AutoResizer.hwnd)
             return
-        g := GuiFromHwnd(Convert2Resizer.hwnd)
+        g := GuiFromHwnd(AutoResizer.hwnd)
         g.GetPos(&x, &y, &w, &h)
         if (w = 0 || h = 0)
             return
-        SetTimer(Convert2Resizer.timer, 0)
+        SetTimer(AutoResizer.timer, 0)
             
-        Convert2Resizer.setPos(GuiFromHwnd(Convert2Resizer.hwnd), Convert2Resizer.path = ""
-            ? Convert2Resizer.path : false)
+        AutoResizer.setPos(GuiFromHwnd(AutoResizer.hwnd), AutoResizer.path = ""
+            ? AutoResizer.path : false)
     }
     static setPos(guiObj, path := "")
     {
         Sleep(50)
         guiObj.GetPos(&x, &y, &w, &h)
-        Convert2Resizer.GuiW := w
-        Convert2Resizer.GuiH := h
-        Convert2Resizer.GuiX := x
-        Convert2Resizer.GuiY := y
+        AutoResizer.GuiW := w
+        AutoResizer.GuiH := h
+        AutoResizer.GuiX := x
+        AutoResizer.GuiY := y
         ctrls := []
         replacementCtrls := []
         for hwnd, ctrl in guiObj
@@ -56,20 +57,19 @@ class Convert2Resizer extends GuiResizer
             ControlGetPos(&x, &y, &w, &h, ctrl)
             if (w = 0 || h = 0)
                 continue
-            ;replacementCtrls.Push(Convert2Resizer.Mapify(ctrl, x, y, w, h, &ctrls))
-            ctrl.XP := Round(Number(x / Convert2Resizer.GuiW), 3)
-            ctrl.YP := Round(Number(y / Convert2Resizer.GuiH), 3)
-            ctrl.WidthP := Round(Number(w / Convert2Resizer.GuiW), 3)
-            ctrl.HeightP := Round(Number(h / Convert2Resizer.GuiH), 3)
+            ;replacementCtrls.Push(AutoResizer.Mapify(ctrl, x, y, w, h, &ctrls))
+            ctrl.XP := Round(Number(x / AutoResizer.GuiW), 3)
+            ctrl.YP := Round(Number(y / AutoResizer.GuiH), 3)
+            ctrl.WidthP := Round(Number(w / AutoResizer.GuiW), 3)
+            ctrl.HeightP := Round(Number(h / AutoResizer.GuiH), 3)
             ;Toolbox_.FormatOpt(ctrl,ctrl.xp,ctrl.yp,ctrl.widthp,ctrl.heightp)
             try{
                 ctrl.Redraw()
             }
         }
-        guiObj.Opt("+Resize +MinSize250x150")
         guiObj.OnEvent("Size", GuiResizer)
         GuiResizer.Now(guiObj)
-        if !Convert2Resizer.is__file__
+        if !AutoResizer.is__file__
             return
     }
     ; #########################################
@@ -79,10 +79,10 @@ class Convert2Resizer extends GuiResizer
     ; static Mapify(ctrl, x, y, w, h, &ctrls)
     ; {
     ;     m := Map()
-    ;     m["WP"] := Round(w / Convert2Resizer.GuiW, 2)
-    ;     m["HP"] := Round(h / Convert2Resizer.GuiH, 2)
-    ;     m["XP"] := Round(x / Convert2Resizer.GuiW, 2)
-    ;     m["YP"] := Round(y / Convert2Resizer.GuiH, 2)
+    ;     m["WP"] := Round(w / AutoResizer.GuiW, 2)
+    ;     m["HP"] := Round(h / AutoResizer.GuiH, 2)
+    ;     m["XP"] := Round(x / AutoResizer.GuiW, 2)
+    ;     m["YP"] := Round(y / AutoResizer.GuiH, 2)
     ;     m['Text'] := ctrl.HasProp("Text") ? ctrl.text : false
     ;     m['Value'] := ctrl.HasProp("Value") ? ctrl.Value : false
     ;     m['Type'] := ctrl.HasProp("Type") ? ctrl.Type : false
@@ -101,7 +101,7 @@ class Convert2Resizer extends GuiResizer
     ;     if path != ""
     ;         path := A_ScriptFullPath
     ;     contents := FileOpen(path, "r").Read()
-    ;     newScript := Convert2Resizer.GUify(replacementCtrls, contents)
+    ;     newScript := AutoResizer.GUify(replacementCtrls, contents)
     ;     SplitPath(path, , &dir, , &name)
     ;     FileOpen(dir "\" name "_converted.ahk", "w").Write(newScript)
     ;     Run("notepad.exe `"" dir "\" name "_converted.ahk`"")
