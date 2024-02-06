@@ -19,7 +19,7 @@ class AutoResizer extends GuiResizer
     {
         if AutoResizer.hwnd != false || AutoResizer.hwnd != 0
             return
-        guiObj.Opt("-DPIScale +Resize +MinSize250x150")
+        guiObj.Opt("-DPIScale +Resize +MinSize450x350")
         
         guiObj.OnEvent("Size", GuiResizer)
         AutoResizer.hwnd := guiObj.hwnd, AutoResizer.path := IsSet(path) ? path : ""
@@ -38,13 +38,13 @@ class AutoResizer extends GuiResizer
         if (w = 0 || h = 0)
             return
         SetTimer(AutoResizer.timer, 0)
-            
-        AutoResizer.setPos(GuiFromHwnd(AutoResizer.hwnd), AutoResizer.path = ""
-            ? AutoResizer.path : false)
+        setPosFunc := AutoResizer.setPos.Bind(GuiFromHwnd(AutoResizer.hwnd), AutoResizer.path = ""
+                ? AutoResizer.path : false)
+        SetTimer(setPosFunc, -100)
     }
     static setPos(guiObj, path := "")
     {
-        Sleep(50)
+        guiObj := !IsObject(guiObj) ? GuiFromHwnd(AutoResizer.hwnd) : guiObj
         guiObj.GetPos(&x, &y, &w, &h)
         AutoResizer.GuiW := w
         AutoResizer.GuiH := h
@@ -58,10 +58,10 @@ class AutoResizer extends GuiResizer
             if (w = 0 || h = 0)
                 continue
             ;replacementCtrls.Push(AutoResizer.Mapify(ctrl, x, y, w, h, &ctrls))
-            ctrl.XP := Round(Number(x / AutoResizer.GuiW), 3)
-            ctrl.YP := Round(Number(y / AutoResizer.GuiH), 3)
-            ctrl.WidthP := Round(Number(w / AutoResizer.GuiW), 3)
-            ctrl.HeightP := Round(Number(h / AutoResizer.GuiH), 3)
+            ctrl.XP := Round(Number(x / AutoResizer.GuiW), 4)
+            ctrl.YP := Round(Number(y / AutoResizer.GuiH), 4)
+            ctrl.WidthP := Round(Number(w / AutoResizer.GuiW), 4)
+            ctrl.HeightP := Round(Number(h / AutoResizer.GuiH), 4)
             ;Toolbox_.FormatOpt(ctrl,ctrl.xp,ctrl.yp,ctrl.widthp,ctrl.heightp)
             try{
                 ctrl.Redraw()
