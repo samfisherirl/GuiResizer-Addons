@@ -14,16 +14,22 @@ class AutoResizer extends GuiResizer
     static is__file__ := false
     static func := {}
     static timer := {}
-     
-    static Call(guiObj, path?)
+    static scaleObj := false
+    
+    static Call(guiObj, scale := "", path?)
     {
         if AutoResizer.hwnd != false || AutoResizer.hwnd != 0
             return
         guiObj.Opt("-DPIScale +Resize +MinSize450x350")
-        
+        if scale != ""
+        {
+            AutoResizer.scaleObj := AutoResizer.getScale(scale)
+            if AutoResizer.scaleObj = false
+                MsgBox "failed to scale gui"
+        }
         guiObj.OnEvent("Size", GuiResizer)
         AutoResizer.hwnd := guiObj.hwnd, AutoResizer.path := IsSet(path) ? path : ""
-        AutoResizer.timer := {Call: AutoResizer.wait4GuiShow}
+        AutoResizer.timer := { Call: AutoResizer.wait4GuiShow }
         if !WinExist("ahk_id " guiObj.hwnd)
             SetTimer(AutoResizer.timer, 100)
         else
@@ -39,7 +45,7 @@ class AutoResizer extends GuiResizer
             return
         SetTimer(AutoResizer.timer, 0)
         setPosFunc := AutoResizer.setPos.Bind(GuiFromHwnd(AutoResizer.hwnd), AutoResizer.path = ""
-                ? AutoResizer.path : false)
+            ? AutoResizer.path : false)
         SetTimer(setPosFunc, -100)
     }
     static setPos(guiObj, path := "")
@@ -63,17 +69,60 @@ class AutoResizer extends GuiResizer
             ctrl.WidthP := Round(Number(w / AutoResizer.GuiW), 4)
             ctrl.HeightP := Round(Number(h / AutoResizer.GuiH), 4)
             ;Toolbox_.FormatOpt(ctrl,ctrl.xp,ctrl.yp,ctrl.widthp,ctrl.heightp)
-            try{
+            try {
                 ctrl.Redraw()
             }
         }
-        guiObj.OnEvent("Size", GuiResizer)
+        GuiFromHwnd(SausageGUI.hwnd).GetPos(, , &w, &h)
         GuiResizer.Now(guiObj)
+        obj := AutoResizer.resizeWindow
+        if AutoResizer.scaleObj
+            Settimer({Call:AutoResizer.resizeWindow}, -200)
+            ,Settimer({ Call: AutoResizer.refreshUI }, -220)
         if !AutoResizer.is__file__
             return
     }
+    static resizeWindow()
+    {
+        GuiFromHwnd(SausageGUI.hwnd).GetPos(,,&w, &h)
+        WinMove(, , w * Number(AutoResizer.scaleObj.w), h * Number(AutoResizer.scaleObj.h), 'ahk_id ' SausageGUI.hwnd)
+    }
+    static refreshUI()
+    {
+        for _, ctrl in GuiFromHwnd(AutoResizer.hwnd)
+        {
+            ctrl.redraw()
+        }
+    }
+    static getScale(stringIn)
+    {
+        ; Define a regular expression pattern to match "w" followed by numbers (including decimal point)
+        w_pattern := "w(\d*\.?\d+)"
+
+        ; Define a regular expression pattern to match "h" followed by numbers (including decimal point)
+        h_pattern := "h(\d*\.?\d+)"
+        try {
+            return ExtractNumbers(stringIn)
+        } catch as e {
+            Msgbox e.message
+            return false
+        }
+        ; Function to extract numbers attached to "w" and "h"
+        ExtractNumbers(input_string) {
+            RegExMatch(input_string, "w\.(\d+)\s+h\.(\d+)", &match)
+
+            if IsObject(match) {
+                w_number := match[1]
+                h_number := match[2]
+            }
+
+            scaleObj := {w: "0." w_number, h: "0." h_number}
+            return scaleObj
+        }
+    }
+
     ; #########################################
-    ; placeholder for converting to real GuiResize format perminately 
+    ; placeholder for converting to real GuiResize format perminately
     ; #########################################
 
     ; static Mapify(ctrl, x, y, w, h, &ctrls)
@@ -109,29 +158,41 @@ class AutoResizer extends GuiResizer
     ; }
 }
 
-class Toolbox_ extends GuiResizer
-{
-    static FormatOpt(ctrl, xp?, yp?, wp?, hp?, anchor?) 
+
+FormatOpt(ctrl, xp?, yp?, wp?, hp?, anchor?) {
+    if IsSet(anchor)
+        ctrl.A := anchor
+    options := ""
+    if IsSet(xp)
+        options .= DoTheMath(xp, "xp")
+    if IsSet(yp)
+        options .= DoTheMath(yp, "yp")
+    if IsSet(wp)
+        options .= DoTheMath(wp, "wp")
+    if IsSet(hp)
+        options .= DoTheMath(hp, "hp")
+    options := StrReplace(options, "0.", ".")
+    GuiResizer.Opt(ctrl, options)
+    doTheMath(val, str)
     {
-        if IsSet(anchor)
-            ctrl.A := anchor
-        options := ""
-        if IsSet(xp)
-            options .= DoTheMath(xp, "xp")
-        if IsSet(yp)
-            options .= DoTheMath(yp, "yp")
-        if IsSet(wp)
-            options .= DoTheMath(wp, "wp")
-        if IsSet(hp)
-            options .= DoTheMath(hp, "hp")
-        options := StrReplace(options, "0.", ".")
-        GuiResizer.Opt(ctrl, options)
-        doTheMath(val, str)
-        {
-            if val < 0
-                val += 1
-            return str Round(val, 2) " "
-        }
+        if val < 0
+            val += 1
+        return str Round(val, 2) " "
     }
-    static FO(ctrl, xp?, yp?, wp?, hp?, anchor?) => GuiReSizer.FormatOpt(ctrl, xp?, yp?, wp?, hp?, anchor?)
 }
+RelativeFormat(ctrl, ctrlToCopy, x?, y?, w?, h?)
+{
+    if ctrlToCopy = GuiReSizer.lastCtrlObj
+        GuiResizer.FormatOpt(ctrl,
+            IsSet(x) ? ctrlToCopy.XP + x : ctrlToCopy.XP,
+            IsSet(y) ? ctrlToCopy.YP + y : ctrlToCopy.YP,
+                IsSet(w) ? ctrlToCopy.WidthP + w : ctrlToCopy.WidthP,
+                IsSet(h) ? ctrlToCopy.HeightP + h : ctrlToCopy.HeightP)
+}
+; easily copy an existing controls format to another control, for parent/child gui usage
+; make changes where wanted
+Duplicate(ctrl, ctrlToCopy, x?, y?, w?, h?)
+{
+    GuiResizer.FormatOpt(ctrl, ctrlToCopy.XP, ctrlToCopy.YP, ctrlToCopy.WidthP, ctrlToCopy.HeightP)
+}
+FO(ctrl, xp?, yp?, wp?, hp?, anchor?) => GuiReSizer.FormatOpt(ctrl, xp?, yp?, wp?, hp?, anchor?)
