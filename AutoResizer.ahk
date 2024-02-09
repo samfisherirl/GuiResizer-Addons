@@ -124,44 +124,6 @@ class AutoResizer extends GuiResizer
         }
     }
 
-    ; #########################################
-    ; placeholder for converting to real GuiResize format perminately
-    ; #########################################
-
-    ; static Mapify(ctrl, x, y, w, h, &ctrls)
-    ; {
-    ;     m := Map()
-    ;     m["WP"] := Round(w / AutoResizer.GuiW, 2)
-    ;     m["HP"] := Round(h / AutoResizer.GuiH, 2)
-    ;     m["XP"] := Round(x / AutoResizer.GuiW, 2)
-    ;     m["YP"] := Round(y / AutoResizer.GuiH, 2)
-    ;     m['Text'] := ctrl.HasProp("Text") ? ctrl.text : false
-    ;     m['Value'] := ctrl.HasProp("Value") ? ctrl.Value : false
-    ;     m['Type'] := ctrl.HasProp("Type") ? ctrl.Type : false
-    ;     for k, v in m
-    ;     {
-    ;         if (InStr(v, "0."))
-    ;         {
-    ;             temp := StrSplit(v, ".")
-    ;             m[k] := (temp.Has(2)) ? "." temp[2] : v
-    ;         }
-    ;     }
-    ;     return m
-    ; }
-    ; static writeToFile(path?)
-    ; {
-    ;     if path != ""
-    ;         path := A_ScriptFullPath
-    ;     contents := FileOpen(path, "r").Read()
-    ;     newScript := AutoResizer.GUify(replacementCtrls, contents)
-    ;     SplitPath(path, , &dir, , &name)
-    ;     FileOpen(dir "\" name "_converted.ahk", "w").Write(newScript)
-    ;     Run("notepad.exe `"" dir "\" name "_converted.ahk`"")
-    ;     ExitApp()
-    ; }
-}
-
-
 FormatOpt(ctrl, xp?, yp?, wp?, hp?, anchor?) {
     if IsSet(anchor)
         ctrl.A := anchor
