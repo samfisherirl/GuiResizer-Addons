@@ -1,8 +1,11 @@
 # GuiResizer Addons
 
-#### - Colorful Buttons combined with GuiResizer
-#### - Convert standard GUIs to GuiREsizer format
-#### - Runtime Converter
+ - Colorful Buttons combined with GuiResizer
+    - ButtonStyle.ahk
+ - Convert standard GUIs to GuiREsizer format
+    - convert2Resizer.ahk
+ - Runtime Converter
+    - AutoResizer.ahk
 
 
 ### Credits for CreateImageButton: 
