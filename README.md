@@ -1,8 +1,8 @@
 # GuiResizer Addons
 
-####- Colorful Buttons combined with GuiResizer
-####- Convert standard GUIs to GuiREsizer format
-####- Runtime Converter
+#### - Colorful Buttons combined with GuiResizer
+#### - Convert standard GUIs to GuiREsizer format
+#### - Runtime Converter
 
 
 ### Credits for CreateImageButton: 
