@@ -3,6 +3,9 @@
 #Warn all, off
 #Include <GuiResizer>
 
+;Convert Guis with standard format to GuiResizer without code change 
+; AutoResizer(myGui)
+
 class AutoResizer extends GuiResizer
 {
     static GuiW := 0
