@@ -91,22 +91,24 @@ class Convert2Resizer
             newScript .= storage "." _map['Name'] " := " guiname ".Add(`"" _map['Type'] "`", `"`","
             ; Depending on the control 'Type', the generated script will configure it differently
             ; Depending on the control 'Type', the generated script will configure it differently
+            var := (_map.Has('Value') && _map['Value'] != false && _map['Value'] != "") ? _map['Value'] : ""
+            var := (_map.Has('Text') && _map['Text'] != false && _map['Text'] != "") ? _map['Text'] : ""
             newScript .= (!InStr(_map['Type'], "List") && !InStr(_map['Type'], "DDL") && !InStr(_map['Type'], "dropdownlist"))
                 ? (!InStr(_map['Type'], "ComboBox"))
-                    ? " `"`")`n" : "[`"`"])`n"
-                : "[`"`"])`n"
+                    ? " `"" var "`")`n" : "[`" " var "`"])`n"
+                : "[`" " var "`"])`n"
                 
             ; If there are default settings for the type of GUI control in _map,
             ; check if there's a function associated and it's not false, then add that configuration to the script
-            t := _map['Type']
-            d := defaults.Has(t) ? defaults[t] : 
-            defaults[_map['Type']]
-            newScript .= defaults.Has(_map['Type'])
-                ? (_map[defaults[_map['Type']]['function']] != false)
-                    ? storage "." _map['Name'] "." defaults[_map['Type']]['function'] " := `""
-                        . _map[defaults[_map['Type']]['function']] "`"`n"
-                        : ""
-                : ""
+            ; t := _map['Type']
+            ; d := defaults.Has(t) ? defaults[t] : 
+            ; defaults[_map['Type']]
+            ; newScript .= defaults.Has(_map['Type'])
+            ;     ? (_map[defaults[_map['Type']]['function']] != false)
+            ;         ? storage "." _map['Name'] "." defaults[_map['Type']]['function'] " := `""
+            ;             . _map[defaults[_map['Type']]['function']] "`"`n"
+            ;             : ""
+            ;     : ""
 
             newScript .= "pushToResizer(" storage "."
                 . _map['Name'] ", " _map['XP'] ", " _map['YP'] ", " _map['WP'] ", " _map['HP'] ")`n"
@@ -182,8 +184,7 @@ ctrlDefault()
         "ListBox", Map("ctrl", "ListBox", "event", "Click", "function", "Value"))
 }
 
-SplitPath(A_ScriptFullPath, &fn)
-if InStr(fn, "Convert2Resizer")
+if A_ScriptFullPath = A_LineFile
     myGui := Constructor_()
 
 Constructor_() {
