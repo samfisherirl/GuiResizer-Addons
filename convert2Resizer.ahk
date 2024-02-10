@@ -2,6 +2,8 @@
 #SingleInstance Force  
 #Warn all, off
 
+; requires class lib https://www.autohotkey.com/boards/viewtopic.php?f=83&t=113921
+
 class Convert2Resizer
 {
     static GuiW := 0
