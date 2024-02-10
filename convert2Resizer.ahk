@@ -71,8 +71,16 @@ class Convert2Resizer
                 : (_map['Text'] != false && _map['Text'] != "") ? array_contains(splitLines, (_map['Text'])) : false
             if line
             {
-                if InStr(splitLines[line], "Add(") && InStr(splitLines[line], ":=")
-                    _map['Name'] := Trim(StrSplit(splitLines[line], " := ")[1]) 
+                linestr := splitLines[line]
+                if InStr(linestr, "Add(") && InStr(linestr, ":=")
+                    _map['Name'] := Trim(StrSplit(linestr, " := ")[1]) 
+                if _map.Has('Value')
+                    try
+                        _map['Value'] := BetweenStr(linestr, '"')[3]
+                if _map.Has('Text')
+                    try
+                        _map['Text'] := BetweenStr(linestr, '"')[3]
+                        
             }
             else {
                 _map['Name'] := Trim(_map["Type"]) A_Index
@@ -82,7 +90,8 @@ class Convert2Resizer
             ; Start building the AHK script by creating GUI controls based on the information in _map
             newScript .= storage "." _map['Name'] " := " guiname ".Add(`"" _map['Type'] "`", `"`","
             ; Depending on the control 'Type', the generated script will configure it differently
-            newScript .= (!InStr(_map['Type'], "List"))
+            ; Depending on the control 'Type', the generated script will configure it differently
+            newScript .= (!InStr(_map['Type'], "List") && !InStr(_map['Type'], "DDL") && !InStr(_map['Type'], "dropdownlist"))
                 ? (!InStr(_map['Type'], "ComboBox"))
                     ? " `"`")`n" : "[`"`"])`n"
                 : "[`"`"])`n"
@@ -125,11 +134,43 @@ array_contains(arr, search, case_sensitive := 0)
     }
     return 0
 }
-
+/*
+This function extracts substrings between two sets of delimiters
+it takes the input string (`text`), the start delimiter (`startDelim`),
+and the end delimiter (`endDelim`). It returns an array of all substrings found.
+* Example usage:
+* codeText :=
+ *     "
+ *     (
+ *     This is some text with "quotes" and with < angled brackets > .
+ *     There is "another quote" and < more brackets > .
+ *     )"
+ * quotesContents := ExtractSubstringsBetween(codeText, '"') ; array
+ * bracketContents := ExtractSubstringsBetween(codeText, "<", ">") ; array
+ *
+*/
+BetweenStr(text, startDelim, endDelim?) {
+    if !IsSet(endDelim)
+        endDelim := startDelim
+    results := []  ; Initialize an empty array to store the results
+    startIndex := 1 ; Start search from the beginning of the string
+    while (startIndex := InStr(text, startDelim, true, startIndex + StrLen(startDelim)))
+    {
+        ; Find the matching end delimiter from the found start delimiter
+        endIndex := InStr(text, endDelim, true, startIndex + StrLen(startDelim))
+        if (!endIndex)  ; If no ending delimiter is found, break the loop
+            break
+        extracted := SubStr(text, startIndex + StrLen(startDelim), endIndex - (startIndex + StrLen(startDelim)))
+        results.Push(extracted)
+        startIndex := endIndex
+    }
+    return results
+}
 ctrlDefault()
 {
     return m := Map("Button", map("ctrl", "Button", "event", "Click", "function", "Text"),
         "DropDownList", map("ctrl", "DropDownList", "event", "Change", "function", "Text"),
+        "DDL", map("ctrl", "DDL", "event", "Change", "function", "Text"),
         "Edit", map("ctrl", "Edit", "event", "Change", "function", "Value"),
         "DateTime", map("ctrl", "DateTime", "event", "Change", "function", "Value"),
         "MonthCal", map("ctrl", "MonthCal", "event", "Change", "function", "Value"),
@@ -142,7 +183,7 @@ ctrlDefault()
 }
 
 SplitPath(A_ScriptFullPath, &fn)
-if InStr(fn, "ert2Re")
+if InStr(fn, "Convert2Resizer")
     myGui := Constructor_()
 
 Constructor_() {
@@ -241,21 +282,4 @@ Constructor_() {
     }
 
     return myGui
-}
-BetweenStr(text, startDelim, endDelim?) {
-    if !IsSet(endDelim)
-        endDelim := startDelim
-    results := []  ; Initialize an empty array to store the results
-    startIndex := 1 ; Start search from the beginning of the string
-    while (startIndex := InStr(text, startDelim, true, startIndex + StrLen(startDelim)))
-    {
-        ; Find the matching end delimiter from the found start delimiter
-        endIndex := InStr(text, endDelim, true, startIndex + StrLen(startDelim))
-        if (!endIndex)  ; If no ending delimiter is found, break the loop
-            break
-        extracted := SubStr(text, startIndex + StrLen(startDelim), endIndex - (startIndex + StrLen(startDelim)))
-        results.Push(extracted)
-        startIndex := endIndex
-    }
-    return results
 }
