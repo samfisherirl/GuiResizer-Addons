@@ -59,7 +59,11 @@ class ButtonStyle
     
     static Set(btn, offset, style)
     {
-        btn.ctrl.Gui.GetPos(, , &w, &h)
+        try{
+            btn.ctrl.Gui.GetPos(, , &w, &h)
+        } catch as e {
+            return false
+        }
 
         if h = 0 or w = 0 or !WinActive(btn.ctrl.Gui.hwnd)
         {
@@ -76,6 +80,7 @@ class ButtonStyle
         UseGDIP()
         if btn.ctrl.gui
             myStyleMap(btn.ctrl, offset, style)
+        return true
     }
     
     static refresh()
@@ -90,7 +95,8 @@ class ButtonStyle
     {
         for btn in ButtonStyle.buttons
         {
-            ButtonStyle.set(btn, btn.offset, btn.style)
+            if !ButtonStyle.Set(btn, btn.offset, btn.style)
+                ButtonStyle.buttons.RemoveAt(A_Index)
         }
     }
 }
