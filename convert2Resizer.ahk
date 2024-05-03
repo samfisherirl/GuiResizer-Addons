@@ -2,8 +2,6 @@
 #SingleInstance Force  
 #Warn all, off
 
-; requires class lib https://www.autohotkey.com/boards/viewtopic.php?f=83&t=113921
-
 class Convert2Resizer
 {
     static GuiW := 0
@@ -265,7 +263,7 @@ Constructor_() {
         
         SplitPath(F, , &D)
         tempFileContents := Lib "`n" guiName " := Gui()`n" script "`n" guiName . ".Show(`"" 
-        tempFileContents .= (width != "") ? width : (height != "") ? height : "'w' A_ScreenWidth*.8 ' h' A_ScreenHeight"
+        try tempFileContents .= (width != "") ? width : (height != "") ? height : "'w' A_ScreenWidth*.8 ' h' A_ScreenHeight"
         tempFileContents .= "`")" "`nConvert2Resizer(" guiName ", `"" F "`")`n"
         FileOpen(D "\tempFile.ahk", "w").Write(tempFileContents)
         RunWait(A_AhkPath " `"" D "\tempFile.ahk" "`"", , ,&PID)
