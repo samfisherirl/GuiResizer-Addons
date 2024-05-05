@@ -36,10 +36,10 @@ class Convert2Resizer
     {
         m := Map()
         ctrl.GetPos(&ctrlX, &ctrlY, &ctrlW, &ctrlH)
-        m["WP"] := Round(ctrlW / Convert2Resizer.GuiW, 2)
-        m["HP"] := Round(ctrlH / Convert2Resizer.GuiH, 2)
-        m["XP"] := Round(ctrlX / Convert2Resizer.GuiW, 2)
-        m["YP"] := Round(ctrlY / Convert2Resizer.GuiH, 2)
+        m["WP"] := Round(ctrlW / Convert2Resizer.GuiW, 3)
+        m["HP"] := Round(ctrlH / Convert2Resizer.GuiH, 3)
+        m["XP"] := Round(ctrlX / Convert2Resizer.GuiW, 3)
+        m["YP"] := Round(ctrlY / Convert2Resizer.GuiH, 3)
         m['Text'] := ctrl.HasProp("Text") ? ctrl.text : false
         m['Value'] := ctrl.HasProp("Value") ? ctrl.Value : false
         m['Type'] := ctrl.HasProp("Type") ? ctrl.Type : false
